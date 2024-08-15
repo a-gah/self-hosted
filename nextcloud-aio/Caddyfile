@@ -1,0 +1,19 @@
+{
+	auto_https disable_certs
+}
+
+drive.example.com {
+	header {
+		Strict-Transport-Security             "max-age=15552000;"
+		X-Frame-Options                       "SAMEORIGIN" always
+		X-Permitted-Cross-Domain-Policies     "none" always
+		X-Robots-Tag                          "none" always
+		X-XSS-Protection                      "1; mode=block" always
+		X-Content-Type-Options                "nosniff" always
+	}
+	tls /certs/drive.example.com_ssl_certificate.cer /certs/drive.example.com_private_key.key
+	request_body {
+		max_size 0
+	}
+	reverse_proxy localhost:11000
+}

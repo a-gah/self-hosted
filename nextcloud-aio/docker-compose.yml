@@ -1,0 +1,41 @@
+services:
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    container_name: caddy
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./certs:/certs
+      - ./config:/config
+      - ./data:/data
+      - ./sites:/srv
+    network_mode: "host"
+
+  nextcloud:
+    image: nextcloud/all-in-one:latest
+    restart: unless-stopped
+    container_name: nextcloud-aio-mastercontainer
+    ports:
+      - "8080:8080"
+    environment:
+      #CADDY REVERSE PROXY
+      - APACHE_PORT=11000 # REQUIRED WHEN USING REVERSE PROXIES
+      - APACHE_IP_BIND=127.0.0.1 # REQUIRED WHEN USING REVERSE PROXIES
+      - SKIP_DOMAIN_VALIDATION=true # USING NEXTCLOUD WITHIN LAN ONLY - NOT REACHABLE FROM WAN
+      # BIG FILE UPLOADS
+      - NEXTCLOUD_UPLOAD_LIMIT=100G # IMPROVES BIG FILE UPLOADS
+      - NEXTCLOUD_MEMORY_LIMIT=8192M # IMPROVES BIG FILE UPLOADS
+      - POST_MAX_SIZE=8192M # IMPROVES BIG FILE UPLOADS
+      - MAX_INPUT_TIME=3600 # IMPROVES BIG FILE UPLOADS
+      - MAX_EXECUTION_TIME=3600 # IMPROVES BIG FILE UPLOADS
+      # VARIOUS 
+      - NEXTCLOUD_KEEP_DISABLED_APPS=false # DELETES UNWANTED APPS INSTEAD OF ONLY DISABLING
+    volumes:
+      - nextcloud_aio_mastercontainer:/mnt/docker-aio-config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - caddy
+
+volumes:
+  nextcloud_aio_mastercontainer:
+    name: nextcloud_aio_mastercontainer
